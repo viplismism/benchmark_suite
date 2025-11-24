@@ -11,20 +11,15 @@ MODEL_NAME=$3
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RESULTS_DIR="./benchmark_results/${MODEL_NAME}/${TIMESTAMP}"
 
-# Color codes for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
 # Validate arguments
 if [ -z "$BENCHMARK" ] || [ -z "$MODEL_ENDPOINT" ] || [ -z "$MODEL_NAME" ]; then
-    echo -e "${RED}Usage: ./run_benchmark.sh <benchmark_name> <model_endpoint> <model_name>${NC}"
+    echo "Usage: ./run_benchmark.sh <benchmark_name> <model_endpoint> <model_name>"
     echo ""
     echo "Available benchmarks:"
     echo "  swe-bench-verified    - Single attempt agentic coding"
     echo "  livecodebench         - Competitive coding with Elo rating"
-    echo "  humaneval             - HumanEval coding evaluation"
+    echo "  humaneval             - HumanEval-Rust coding evaluation"
+    echo "  humaneval-python      - HumanEval-Python coding evaluation"
     echo "  tau-bench             - Tool calling and agentic capabilities"
     echo "  aime                  - Mathematical reasoning with code"
     echo "  terminal-bench        - Terminal-based agentic coding"
@@ -46,9 +41,9 @@ cat > "$CONFIG_FILE" <<EOF
 }
 EOF
 
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Running $BENCHMARK for $MODEL_NAME${NC}"
-echo -e "${GREEN}========================================${NC}"
+echo "========================================"
+echo "Running $BENCHMARK for $MODEL_NAME"
+echo "========================================"
 echo ""
 echo "Model Endpoint: $MODEL_ENDPOINT"
 echo "Results Dir: $RESULTS_DIR"
@@ -65,6 +60,9 @@ case $BENCHMARK in
     humaneval)
         ./benchmarks/humaneval.sh "$MODEL_ENDPOINT" "$MODEL_NAME" "$RESULTS_DIR"
         ;;
+    humaneval-python)
+        ./benchmarks/humaneval_python.sh "$MODEL_ENDPOINT" "$MODEL_NAME" "$RESULTS_DIR"
+        ;;
     tau-bench)
         ./benchmarks/tau_bench.sh "$MODEL_ENDPOINT" "$MODEL_NAME" "$RESULTS_DIR"
         ;;
@@ -75,16 +73,16 @@ case $BENCHMARK in
         ./benchmarks/terminal_bench.sh "$MODEL_ENDPOINT" "$MODEL_NAME" "$RESULTS_DIR"
         ;;
     *)
-        echo -e "${RED}Unknown benchmark: $BENCHMARK${NC}"
+        echo "Unknown benchmark: $BENCHMARK"
         exit 1
         ;;
 esac
 
 # Generate summary
 echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Benchmark Complete!${NC}"
-echo -e "${GREEN}========================================${NC}"
+echo "========================================"
+echo "Benchmark Complete!"
+echo "========================================"
 echo ""
 echo "Results saved to: $RESULTS_DIR"
 echo "View results: cat $RESULTS_DIR/results.json"

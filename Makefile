@@ -16,8 +16,9 @@ help:
 	@echo "  make run-quick [MODEL_NAME=<model>]      - Run quick benchmarks (HumanEval, τ-Bench)"
 	@echo "  make swe-bench [MODEL_NAME=<model>]      - Run SWE-Bench Verified only (fast version)"
 	@echo "  make swe-bench-full                      - Run full SWE-Bench setup + evaluation (comprehensive)"
-	@echo "  make tau-bench [MODEL_NAME=<model>]      - Run τ-Bench only"
+	@echo "  make tau-bench                           - Run τ-Bench only (uses config.env)"
 	@echo "  make humaneval [MODEL_NAME=<model>]      - Run HumanEval-Rust only"
+	@echo "  make humaneval-python [MODEL_NAME=<model>] - Run HumanEval-Python only"
 	@echo "  make compare BASELINE=<dir> CURRENT=<dir> - Compare two result sets"
 	@echo "  make clean                          - Clean up results and temporary files"
 	@echo "  make test                           - Test model endpoint connection"
@@ -54,7 +55,7 @@ run-all: setup
 run-quick: setup
 	@echo "Running quick benchmarks for $(MODEL_NAME)..."
 	./run_benchmark.sh humaneval-rust $(MODEL_ENDPOINT) $(MODEL_NAME)
-	./run_benchmark.sh tau-bench $(MODEL_ENDPOINT) $(MODEL_NAME)
+	@cd benchmarks && ./tau_bench.sh
 
 swe-bench: setup
 	@echo "Running SWE-Bench Verified for $(MODEL_NAME)..."
@@ -68,12 +69,16 @@ swe-bench-full: setup
 	python3 setup_swebench.py
 
 tau-bench: setup
-	@echo "Running τ-Bench for $(MODEL_NAME)..."
-	./run_benchmark.sh tau-bench $(MODEL_ENDPOINT) $(MODEL_NAME)
+	@echo "Running τ-Bench using config.env..."
+	@cd benchmarks && ./tau_bench.sh
 
 humaneval: setup
-	@echo "Running HumanEval for $(MODEL_NAME)..."
+	@echo "Running HumanEval-Rust for $(MODEL_NAME)..."
 	./run_benchmark.sh humaneval $(MODEL_ENDPOINT) $(MODEL_NAME)
+
+humaneval-python: setup
+	@echo "Running HumanEval-Python for $(MODEL_NAME)..."
+	./run_benchmark.sh humaneval-python $(MODEL_ENDPOINT) $(MODEL_NAME)
 
 livecodebench: setup
 	@echo "Running LiveCodeBench for $(MODEL_NAME)..."
@@ -109,6 +114,7 @@ clean:
 	@rm -rf swe_bench_verified/
 	@rm -rf livecodebench/
 	@rm -rf humaneval_rust/
+	@rm -rf humaneval_python/
 	@rm -rf tau_bench/
 	@rm -rf aime_2025/
 	@rm -rf terminal_bench/
