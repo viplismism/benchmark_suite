@@ -83,6 +83,7 @@ coverage.xml
 .env
 .venv
 config.env.local
+config.env
 
 # Temporary files
 *.tmp

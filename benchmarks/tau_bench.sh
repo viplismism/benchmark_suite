@@ -302,11 +302,16 @@ class TauBenchRunner:
 
                             # Extract token counts from conversation trajectory
                             if 'traj' in task_data:
-                                agent_input, agent_output, user_output = self._count_tokens_from_trajectory(
-                                    task_data['traj'], enc
+                                # Get task instruction if available
+                                task_instruction = None
+                                if 'task' in task_data and 'instruction' in task_data['task']:
+                                    task_instruction = task_data['task']['instruction']
+
+                                agent_input, agent_output, user_input, user_output = self._count_tokens_from_trajectory(
+                                    task_data['traj'], enc, task_instruction
                                 )
 
-                                if agent_input > 0 or agent_output > 0 or user_output > 0:
+                                if agent_input > 0 or agent_output > 0 or user_input > 0 or user_output > 0:
                                     if task_id not in self.task_tokens:
                                         self.task_tokens[task_id] = {
                                             "agent_input": 0, "agent_output": 0,
@@ -315,24 +320,29 @@ class TauBenchRunner:
 
                                     self.task_tokens[task_id]["agent_input"] += agent_input
                                     self.task_tokens[task_id]["agent_output"] += agent_output
+                                    self.task_tokens[task_id]["user_input"] += user_input
                                     self.task_tokens[task_id]["user_output"] += user_output
 
                                     self.total_tokens["agent_input"] += agent_input
                                     self.total_tokens["agent_output"] += agent_output
-                                    # For now, user_input is 0 - can be enhanced later
-                                    self.total_tokens["user_input"] += 0
+                                    self.total_tokens["user_input"] += user_input
                                     self.total_tokens["user_output"] += user_output
 
             except Exception:
                 continue  # Skip files that can't be parsed
 
-    def _count_tokens_from_trajectory(self, traj: list, enc) -> tuple:
+    def _count_tokens_from_trajectory(self, traj: list, enc, task_instruction: str = None) -> tuple:
         """Count tokens from conversation trajectory, separating agent and user simulator."""
         agent_input_tokens = 0
         agent_output_tokens = 0
+        user_input_tokens = 0
         user_output_tokens = 0
 
-        for message in traj:
+        # Count the initial instruction as user model input
+        if task_instruction:
+            user_input_tokens += len(enc.encode(task_instruction))
+
+        for i, message in enumerate(traj):
             if isinstance(message, dict) and 'content' in message:
                 content = str(message['content'])
                 role = message.get('role', '')
@@ -345,6 +355,11 @@ class TauBenchRunner:
                     user_output_tokens += len(enc.encode(content))
                     # User messages also become input to agent model
                     agent_input_tokens += len(enc.encode(content))
+
+                    # User simulator input: conversation history up to this point
+                    for prev_msg in traj[:i]:
+                        if isinstance(prev_msg, dict) and 'content' in prev_msg:
+                            user_input_tokens += len(enc.encode(str(prev_msg['content'])))
                 elif role == 'assistant':
                     # Assistant messages are output from agent model
                     agent_output_tokens += len(enc.encode(content))
@@ -358,7 +373,7 @@ class TauBenchRunner:
                     # Tool results are input to agent model
                     agent_input_tokens += len(enc.encode(content))
 
-        return agent_input_tokens, agent_output_tokens, user_output_tokens
+        return agent_input_tokens, agent_output_tokens, user_input_tokens, user_output_tokens
         
     def save_results(self, exit_code: int) -> None:
         """Save evaluation results to JSON file."""
