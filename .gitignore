@@ -1,188 +1,36 @@
 # Benchmark Results
 benchmark_results/
-results/
 
-# Benchmark Repositories and Generated Folders
-swe_bench_verified/
-humaneval_rust/
-livecodebench/
-tau_bench/
-aime_2025/
-terminal_bench/
+# Cloned Benchmark Repositories (created during runs)
+benchmarks/tau_bench/
+benchmarks/terminal_bench/
+benchmarks/humaneval_rust/
 
-# Additional benchmark-related directories
-MultiPL-E/
-SWE-bench/
-livecodebench-data/
-tau-bench/
-terminal-bench/
-
-# Benchmark working directories and clones
-**/humaneval*/
-**/swe_bench*/
-**/livecodebench*/
-**/tau_bench*/
-**/aime_*/
-**/terminal_bench*/
-
-# Python Virtual Environments
-venv/
-.venv/
-env/
-.env/
-*/venv/
-*/env/
-
-# Python Cache
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Environment variables
-.env
-.venv
-config.env.local
-config.env
-
-# Temporary files
-*.tmp
-*.temp
-/tmp/
-temp/
-
-# Rust build artifacts
-target/
-Cargo.lock
-*.rs.bk
-
-# Compiled binaries
-*.exe
-*.dll
-*.so
-*.dylib
-
-# Generated datasets and benchmark files
-*.jsonl
-*.json.gz
-**/datasets/
-**/completions/
-**/predictions/
-**/evaluations/
-
-# Benchmark-specific files
-humaneval-*.jsonl
-swe-bench-*.jsonl
-tau-bench-*.jsonl
-mbpp-*.jsonl
-code-*-results.json
-
-# Repository clones and checkouts
-repo_*/
-instance_*/
-testbed_*/
-
-# Logs
-*.log
-logs/
-
-# OS specific files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Model weights and large files
-*.bin
-*.pt
-*.pth
-*.safetensors
-
-# API keys (backup protection)
-secrets/
-api_keys/
-*.key
-.secrets
-
-# Tmux sessions
-.tmux/
-
-# Background process files
-*.pid
-nohup.out
-
-# Evaluation artifacts and temporary directories
-run_evaluation.py
-evaluation_*.py
-**/tmp/
-**/cache/
-**/downloads/
-**/extracted/
-
-# Docker and containerization
-docker-compose.override.yml
-.docker/
-*.dockerfile.local
-
-# Git LFS
-*.lfs
-
-# Secrets and config (real files with API keys)
+# Config files with secrets
 config.env
 litellm_config.yaml
-.env
-*.env.local
 
 # LiteLLM runtime files
 .litellm.log
 .litellm.pid
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.temp
