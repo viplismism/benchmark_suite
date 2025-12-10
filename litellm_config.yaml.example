@@ -1,0 +1,15 @@
+# LiteLLM Configuration - Copy to litellm_config.yaml and fill in your values
+
+model_list:
+  - model_name: your-model-name
+    litellm_params:
+      model: openai/your-model-name
+      api_base: http://your-server:8001/v1
+      api_key: your-api-key-here
+
+general_settings:
+  master_key: your-master-key-here
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
