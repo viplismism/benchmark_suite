@@ -177,12 +177,12 @@ docker-compose.override.yml
 # Git LFS
 *.lfs
 
-# Secrets and config
+# Secrets and config (real files with API keys)
 config.env
+litellm_config.yaml
 .env
 *.env.local
-litellm_config.yaml
 
-# LiteLLM files
+# LiteLLM runtime files
 .litellm.log
 .litellm.pid
