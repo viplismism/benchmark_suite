@@ -1,0 +1,73 @@
+model_list:
+  # =============================================================================
+  # GLM Models (Grid AI - 34.60.8.7:8001)
+  # =============================================================================
+  
+  # Base Model
+  - model_name: zai-org/GLM-4.5-Air
+    litellm_params:
+      model: openai/zai-org/GLM-4.5-Air
+      api_base: http://34.60.8.7:8001/v1
+      api_key: sk-dummy
+
+  # LoRA 1: Avinash
+  - model_name: glm-45-air-hs-avinash
+    litellm_params:
+      model: openai/glm-45-air-hs-avinash
+      api_base: http://34.60.8.7:8001/v1
+      api_key: sk-dummy
+
+  # LoRA 2: Aditya CPT
+  - model_name: glm-45-air-cpt-aditya
+    litellm_params:
+      model: openai/glm-45-air-cpt-aditya
+      api_base: http://34.60.8.7:8001/v1
+      api_key: sk-dummy
+
+  # LoRA 3: Avinash 10k
+  - model_name: glm-45-air-avinash-10k
+    litellm_params:
+      model: openai/glm-45-air-avinash-10k
+      api_base: http://34.60.8.7:8001/v1
+      api_key: sk-dummy
+
+  # =============================================================================
+  # KAT Models (103.48.43.21:8000)
+  # =============================================================================
+  
+  # KAT Base Model
+  - model_name: Kwaipilot/KAT-Dev
+    litellm_params:
+      model: openai/Kwaipilot/KAT-Dev
+      api_base: http://103.48.43.21:8000/v1
+      api_key: sk-dummy
+
+  # KAT HyperSwitch LoRA
+  - model_name: kat-dev-hyperswitch-cpt
+    litellm_params:
+      model: openai/kat-dev-hyperswitch-cpt
+      api_base: http://103.48.43.21:8000/v1
+      api_key: sk-dummy
+
+  # KAT Phased Training LoRA
+  - model_name: kat-dev-hyperswitch-phased-cpt
+    litellm_params:
+      model: openai/kat-dev-hyperswitch-phased-cpt
+      api_base: http://103.48.43.21:8000/v1
+      api_key: sk-dummy
+
+  # =============================================================================
+  # User Simulator (Veronica)
+  # =============================================================================
+  - model_name: gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_base: https://veronica.pratikn.com/v1
+      api_key: sk-af4l98LZU9GS9JPF5DDRLw
+
+general_settings:
+  master_key: sk-litellm-proxy-key-123
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false

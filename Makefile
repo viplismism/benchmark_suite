@@ -1,157 +1,139 @@
-.PHONY: help setup run-all run-quick clean compare test
+# =============================================================================
+# Benchmark Suite - Production Makefile
+# =============================================================================
 
-# Default configuration for testing with Claude Sonnet
-MODEL_NAME ?= claude-sonnet-4-5
-MODEL_ENDPOINT ?= https://grid.ai.juspay.net
-BASELINE_DIR ?= 
-CURRENT_DIR ?=
+.PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
+        tau-bench terminal-bench terminal-bench-resume terminal-bench-list clean
 
 help:
-	@echo "KAT-Coder Benchmark Suite"
-	@echo "========================="
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo "  Benchmark Suite"
+	@echo "═══════════════════════════════════════════════════════════════════════"
 	@echo ""
-	@echo "Usage:"
-	@echo "  make setup                               - Install dependencies and setup environment"
-	@echo "  make run-all [MODEL_NAME=<model>]        - Run all benchmarks (default: claude-sonnet-4-5)"
-	@echo "  make run-quick [MODEL_NAME=<model>]      - Run quick benchmarks (HumanEval, τ-Bench)"
-	@echo "  make swe-bench [MODEL_NAME=<model>]      - Run SWE-Bench Verified only (fast version)"
-	@echo "  make swe-bench-full                      - Run full SWE-Bench setup + evaluation (comprehensive)"
-	@echo "  make tau-bench                           - Run τ-Bench only (uses config.env)"
-	@echo "  make humaneval [MODEL_NAME=<model>]      - Run HumanEval-Rust only"
-	@echo "  make humaneval-python [MODEL_NAME=<model>] - Run HumanEval-Python only"
-	@echo "  make compare BASELINE=<dir> CURRENT=<dir> - Compare two result sets"
-	@echo "  make clean                          - Clean up results and temporary files"
-	@echo "  make test                           - Test model endpoint connection"
+	@echo "  LiteLLM Proxy:"
+	@echo "    make litellm          - Start proxy (foreground, with logs)"
+	@echo "    make litellm-start    - Start proxy (background)"
+	@echo "    make litellm-stop     - Stop proxy"
+	@echo "    make litellm-status   - Check proxy status"
+	@echo "    make litellm-logs     - View recent logs"
+	@echo "    make litellm-tail     - Follow logs in real-time"
 	@echo ""
-	@echo "Configuration:"
-	@echo "  MODEL_NAME: Name of model to evaluate (default: claude-sonnet-4-5)"
-	@echo "  MODEL_ENDPOINT: Grid AI endpoint URL (default: https://grid.ai.juspay.net)"
+	@echo "  Benchmarks:"
+	@echo "    make tau-bench        - Run τ-Bench evaluation"
+	@echo "    make terminal-bench   - Run Terminal-Bench evaluation"
+	@echo "    make terminal-bench-resume CHECKPOINT=<path>"
+	@echo "    make terminal-bench-list"
 	@echo ""
-	@echo "Available Models:"
-	@echo "  claude-sonnet-4-5, claude-sonnet-4, qwen3-coder-480b, qwen3-30b"
-	@echo "  kat-dev-hs-72b, kat-dev-base-72b, kat-dev-hs-32b, kat-dev-base-32b"
+	@echo "  Utilities:"
+	@echo "    make setup            - Setup environment"
+	@echo "    make clean            - Clean up Docker containers"
 	@echo ""
-	@echo "Examples:"
-	@echo "  make run-quick                                      # Test with Claude Sonnet"
-	@echo "  make run-all MODEL_NAME=qwen3-coder-480b           # Test with Qwen3 Coder"
-	@echo "  make humaneval MODEL_NAME=kat-dev-hs-72b           # Test with KAT model"
-	@echo "  make compare BASELINE=results/baseline CURRENT=results/latest"
+	@echo "  Configuration: Edit config.env for model/endpoint settings"
+	@echo "═══════════════════════════════════════════════════════════════════════"
+
+# =============================================================================
+# Setup
+# =============================================================================
 
 setup:
-	@echo "Setting up benchmark environment..."
-	@chmod +x run_benchmark.sh
-	@chmod +x run_all_benchmarks.sh
-	@chmod +x benchmarks/*.sh
-	@chmod +x compare_results.py
-	@echo "Creating directories..."
+	@chmod +x benchmarks/*.sh 2>/dev/null || true
 	@mkdir -p benchmark_results
-	@mkdir -p benchmarks
-	@echo "Setup complete!"
+	@echo "✓ Setup complete"
 
-run-all: setup
-	@echo "Running all benchmarks for $(MODEL_NAME)..."
-	./run_all_benchmarks.sh $(MODEL_ENDPOINT) $(MODEL_NAME)
+# =============================================================================
+# LiteLLM Proxy
+# =============================================================================
 
-run-quick: setup
-	@echo "Running quick benchmarks for $(MODEL_NAME)..."
-	./run_benchmark.sh humaneval-rust $(MODEL_ENDPOINT) $(MODEL_NAME)
-	@cd benchmarks && ./tau_bench.sh
+LITELLM_PORT := 8001
+LITELLM_CONFIG := litellm_config.yaml
+LITELLM_LOG := .litellm.log
+LITELLM_PID := .litellm.pid
+LITELLM_KEY := sk-litellm-proxy-key-123
 
-swe-bench: setup
-	@echo "Running SWE-Bench Verified for $(MODEL_NAME)..."
-	./run_benchmark.sh swe-bench-verified $(MODEL_ENDPOINT) $(MODEL_NAME)
+# Foreground - run litellm with filtered output (preserve colors)
+litellm:
+	@echo ""
+	@echo "  Starting LiteLLM Proxy on port $(LITELLM_PORT)..."
+	@echo ""
+	@litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) 2>/dev/null | \
+		grep -v "Thank you" | grep -v "Give Feedback" | grep -v "BerriAI" | \
+		grep -v "help me if" | grep -v "would help" | grep -v "#----"
 
-swe-bench-full: setup
-	@echo "Running SWE-Bench with full setup and evaluation..."
-	@chmod +x setup_swebench.py
-	@echo "This will run the comprehensive SWE-Bench setup script"
-	@echo "It includes Docker image building and full evaluation"
-	python3 setup_swebench.py
+# Background start
+litellm-start:
+	@if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
+		echo "✓ LiteLLM already running on port $(LITELLM_PORT)"; \
+	else \
+		echo "Starting LiteLLM on port $(LITELLM_PORT)..."; \
+		litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) >> $(LITELLM_LOG) 2>&1 & \
+		echo $$! > $(LITELLM_PID); \
+		sleep 5; \
+		if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
+			echo "✓ LiteLLM started"; \
+			echo "  Models:"; \
+			grep "model_name:" $(LITELLM_CONFIG) | sed 's/.*model_name: /    → /' | head -8; \
+		else \
+			echo "✗ Failed to start"; \
+		fi; \
+	fi
+
+litellm-stop:
+	@pkill -f "litellm.*$(LITELLM_PORT)" 2>/dev/null || true
+	@rm -f $(LITELLM_PID)
+	@echo "✓ LiteLLM stopped"
+
+litellm-status:
+	@if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
+		echo "✓ LiteLLM running on port $(LITELLM_PORT)"; \
+	else \
+		echo "✗ LiteLLM not running"; \
+	fi
+
+litellm-logs:
+	@tail -50 $(LITELLM_LOG) 2>/dev/null | grep -vE "(guardrail|Traceback|TypeError)" | tail -20 || echo "No logs"
+
+litellm-tail:
+	@tail -f $(LITELLM_LOG) 2>/dev/null | grep --line-buffered -vE "(guardrail|Traceback|TypeError)" || echo "No logs"
+
+# =============================================================================
+# Benchmarks
+# =============================================================================
 
 tau-bench: setup
-	@echo "Running τ-Bench using config.env..."
 	@cd benchmarks && ./tau_bench.sh
 
-humaneval: setup
-	@echo "Running HumanEval-Rust for $(MODEL_NAME)..."
-	./run_benchmark.sh humaneval $(MODEL_ENDPOINT) $(MODEL_NAME)
-
-humaneval-python: setup
-	@echo "Running HumanEval-Python for $(MODEL_NAME)..."
-	./run_benchmark.sh humaneval-python $(MODEL_ENDPOINT) $(MODEL_NAME)
-
-livecodebench: setup
-	@echo "Running LiveCodeBench for $(MODEL_NAME)..."
-	./run_benchmark.sh livecodebench $(MODEL_ENDPOINT) $(MODEL_NAME)
-
-aime: setup
-	@echo "Running AIME 2025 for $(MODEL_NAME)..."
-	./run_benchmark.sh aime $(MODEL_ENDPOINT) $(MODEL_NAME)
-
 terminal-bench: setup
-	@echo "Running Terminal-Bench 2.0 for $(MODEL_NAME)..."
-	./run_benchmark.sh terminal-bench $(MODEL_ENDPOINT) $(MODEL_NAME)
+	@cd benchmarks && ./terminal_bench.sh
 
-compare:
-	@if [ -z "$(BASELINE)" ] || [ -z "$(CURRENT)" ]; then \
-		echo "Error: Must specify BASELINE and CURRENT directories"; \
-		echo "Usage: make compare BASELINE=<dir> CURRENT=<dir>"; \
-		exit 1; \
+terminal-bench-resume: setup
+	@if [ -z "$(CHECKPOINT)" ]; then \
+		echo "Usage: make terminal-bench-resume CHECKPOINT=<path>"; \
+		echo ""; \
+		echo "Available checkpoints:"; \
+		ls -dt benchmark_results/terminal_bench/*/ 2>/dev/null | head -5 || echo "  None found"; \
+	else \
+		cd benchmarks && TERMINAL_BENCH_RESUME="$(CHECKPOINT)" ./terminal_bench.sh; \
 	fi
-	@echo "Comparing results..."
-	./compare_results.py $(BASELINE) $(CURRENT)
 
-test:
-	@echo "Testing connection to $(MODEL_ENDPOINT) with model $(MODEL_NAME)..."
-	@curl -X POST $(MODEL_ENDPOINT)/v1/chat/completions \
-		-H "Content-Type: application/json" \
-		-H "Authorization: Bearer sk-M_69wbwWPUCfaMRNloo67g" \
-		-d '{"model": "$(MODEL_NAME)", "messages": [{"role": "user", "content": "test"}], "max_tokens": 10}' \
-		|| echo "Connection test failed!"
+terminal-bench-list:
+	@echo "Terminal-Bench Checkpoints:"
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@for dir in $$(ls -dt benchmark_results/terminal_bench/*/ 2>/dev/null | head -10); do \
+		if [ -f "$$dir/summary.json" ]; then \
+			info=$$(python3 -c "import json; d=json.load(open('$$dir/summary.json')); print(f\"{d['results']['passed']}/{d['results']['total']} ({d['results']['accuracy']}%) - {d.get('model','?')}\")" 2>/dev/null || echo "?"); \
+			echo "  ✓ $$dir"; \
+			echo "    $$info"; \
+		else \
+			echo "  ○ $$dir (incomplete)"; \
+		fi; \
+	done 2>/dev/null || echo "  No checkpoints found"
+
+# =============================================================================
+# Utilities
+# =============================================================================
 
 clean:
-	@echo "Cleaning up..."
-	@rm -rf swe_bench_verified/
-	@rm -rf livecodebench/
-	@rm -rf humaneval_rust/
-	@rm -rf humaneval_python/
-	@rm -rf tau_bench/
-	@rm -rf aime_2025/
-	@rm -rf terminal_bench/
-	@echo "Cleaned benchmark repositories (results preserved)"
-
-clean-all: clean
-	@echo "Removing all results..."
-	@rm -rf benchmark_results/
-	@echo "All clean!"
-
-# Development targets
-dev-test: setup
-	@echo "Running development tests..."
-	@echo "1. Testing HumanEval-Rust (quick sanity check)..."
-	./run_benchmark.sh humaneval-rust $(MODEL_ENDPOINT) $(MODEL_NAME)
-
-# Find latest results directory
-latest:
-	@find benchmark_results/$(MODEL_NAME) -type d -maxdepth 1 | sort -r | head -1
-
-# Show latest results
-show-latest:
-	@echo "Latest results for $(MODEL_NAME):"
-	@LATEST=$$(make latest); \
-	if [ -f "$$LATEST/aggregate_results.json" ]; then \
-		cat "$$LATEST/aggregate_results.json" | python -m json.tool; \
-	else \
-		echo "No results found"; \
-	fi
-
-# List all result directories
-list-results:
-	@echo "Available results for $(MODEL_NAME):"
-	@find benchmark_results/$(MODEL_NAME) -type d -maxdepth 1 -mindepth 1 | sort -r
-
-# Create a report
-report:
-	@LATEST=$$(make latest); \
-	echo "Generating report from $$LATEST..."; \
-	python3 -c "import json; data = json.load(open('$$LATEST/aggregate_results.json')); print('\n=== BENCHMARK REPORT ==='); print(f\"Model: {data['model']}\"); print(f\"Timestamp: {data['timestamp']}\"); print('\nResults:'); [print(f\"  {k}: {v.get('resolve_rate', v.get('accuracy', v.get('pass_rate', 'N/A')))}%\") for k,v in data['benchmarks'].items()]"
+	@echo "Cleaning up Docker containers..."
+	@docker ps -q --filter "name=tb-" 2>/dev/null | xargs -r docker kill 2>/dev/null || true
+	@docker ps -aq --filter "name=tb-" 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true	@docker container prune -f 2>/dev/null | grep -v "^$$" || true
+	@echo "✓ Done"
