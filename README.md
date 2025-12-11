@@ -75,7 +75,7 @@ general_settings:
 
 Results are saved in `benchmark_results/`:
 
-```
+```python
 benchmark_results/
 ├── tau_bench/
 │   └── tau_bench_20241210_193000/
