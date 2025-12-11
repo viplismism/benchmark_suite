@@ -1,7 +1,3 @@
-# =============================================================================
-# Benchmark Suite - Production Makefile
-# =============================================================================
-
 .PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
         tau-bench terminal-bench terminal-bench-resume terminal-bench-list clean
 
@@ -31,18 +27,10 @@ help:
 	@echo "  Configuration: Edit config.env for model/endpoint settings"
 	@echo "═══════════════════════════════════════════════════════════════════════"
 
-# =============================================================================
-# Setup
-# =============================================================================
-
 setup:
 	@chmod +x benchmarks/*.sh 2>/dev/null || true
 	@mkdir -p benchmark_results
 	@echo "✓ Setup complete"
-
-# =============================================================================
-# LiteLLM Proxy
-# =============================================================================
 
 LITELLM_PORT := 8001
 LITELLM_CONFIG := litellm_config.yaml
@@ -50,7 +38,6 @@ LITELLM_LOG := .litellm.log
 LITELLM_PID := .litellm.pid
 LITELLM_KEY := sk-litellm-proxy-key-123
 
-# Foreground - run litellm with filtered output (preserve colors)
 litellm:
 	@echo ""
 	@echo "  Starting LiteLLM Proxy on port $(LITELLM_PORT)..."
@@ -59,7 +46,6 @@ litellm:
 		grep -v "Thank you" | grep -v "Give Feedback" | grep -v "BerriAI" | \
 		grep -v "help me if" | grep -v "would help" | grep -v "#----"
 
-# Background start
 litellm-start:
 	@if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
 		echo "✓ LiteLLM already running on port $(LITELLM_PORT)"; \
@@ -95,10 +81,6 @@ litellm-logs:
 litellm-tail:
 	@tail -f $(LITELLM_LOG) 2>/dev/null | grep --line-buffered -vE "(guardrail|Traceback|TypeError)" || echo "No logs"
 
-# =============================================================================
-# Benchmarks
-# =============================================================================
-
 tau-bench: setup
 	@cd benchmarks && ./tau_bench.sh
 
@@ -127,10 +109,6 @@ terminal-bench-list:
 			echo "  ○ $$dir (incomplete)"; \
 		fi; \
 	done 2>/dev/null || echo "  No checkpoints found"
-
-# =============================================================================
-# Utilities
-# =============================================================================
 
 clean:
 	@echo "Cleaning up Docker containers..."

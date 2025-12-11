@@ -34,3 +34,6 @@ venv/
 # Temporary
 *.tmp
 *.temp
+
+# Scripts
+*scripts/
