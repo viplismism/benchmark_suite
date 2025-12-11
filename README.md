@@ -73,22 +73,6 @@ general_settings:
   master_key: sk-litellm-proxy-key-123
 ```
 
-## Benchmarks
-
-### τ-Bench (Tau-Bench)
-Tests tool calling and agentic capabilities in retail/airline domains.
-
-- **Domains:** retail (115 tasks), airline (50 tasks)
-- **Metrics:** Pass rate, token usage
-
-### Terminal-Bench
-Tests agentic terminal-based coding capabilities.
-
-- **Tasks:** 70+ real-world coding tasks
-- **Features:** Resume support, concurrent execution
-
-## Results
-
 Results are saved in `benchmark_results/`:
 
 ```
