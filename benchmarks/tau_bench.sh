@@ -18,7 +18,7 @@ if [ "$TAU_BENCH_TASKS" = "all" ]; then
 fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-TAU_BENCH_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/tau_bench/tau_bench_${TIMESTAMP}"
+TAU_BENCH_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/tau_bench/tau_bench_${TIMESTAMP}_${TAU_BENCH_AGENT_MODEL}_${TAU_BENCH_USER_MODEL}"
 mkdir -p "$TAU_BENCH_RESULTS_DIR"
 TAU_BENCH_RESULTS_DIR=$(cd "$TAU_BENCH_RESULTS_DIR" && pwd)
 BENCHMARK_DIR="${SCRIPT_DIR}/tau_bench"

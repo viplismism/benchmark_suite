@@ -57,6 +57,8 @@ EOF
 
 cleanup >/dev/null 2>&1
 
+MODEL_NAME="${TERMINAL_BENCH_MODEL:-${TAU_BENCH_AGENT_MODEL}}"
+
 if [ -n "$TERMINAL_BENCH_RESUME" ] && [ -d "$TERMINAL_BENCH_RESUME" ]; then
     RESULTS_DIR="$TERMINAL_BENCH_RESUME"
     [ -f "${RESULTS_DIR}/run_config.env" ] && source "${RESULTS_DIR}/run_config.env"
@@ -65,7 +67,7 @@ if [ -n "$TERMINAL_BENCH_RESUME" ] && [ -d "$TERMINAL_BENCH_RESUME" ]; then
     echo "Resuming from $RESULTS_DIR ($COMPLETED_COUNT tasks completed)"
 else
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/terminal_bench/terminal_bench_${TIMESTAMP}"
+    RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/terminal_bench/terminal_bench_${TIMESTAMP}_${MODEL_NAME}"
     mkdir -p "$RESULTS_DIR"
     COMPLETED_TASKS=""
     cat > "${RESULTS_DIR}/run_config.env" << EOF
