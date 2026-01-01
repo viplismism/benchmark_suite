@@ -37,3 +37,7 @@ venv/
 
 # Scripts
 *scripts/
+
+# Envioronment files
+.env/
+*env/

@@ -1,5 +1,5 @@
 .PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
-        tau-bench terminal-bench terminal-bench-resume terminal-bench-list clean
+		tau-bench terminal-bench terminal-bench-2 terminal-bench-resume terminal-bench-list clean docker-clean
 
 help:
 	@echo "═══════════════════════════════════════════════════════════════════════"
@@ -17,12 +17,14 @@ help:
 	@echo "  Benchmarks:"
 	@echo "    make tau-bench        - Run τ-Bench evaluation"
 	@echo "    make terminal-bench   - Run Terminal-Bench evaluation"
+	@echo "    make terminal-bench-2 - Run Terminal-Bench 2.0 evaluation"
 	@echo "    make terminal-bench-resume CHECKPOINT=<path>"
 	@echo "    make terminal-bench-list"
 	@echo ""
 	@echo "  Utilities:"
 	@echo "    make setup            - Setup environment"
-	@echo "    make clean            - Clean up Docker containers"
+	@echo "    make clean            - Clean up Terminal-Bench Docker containers"
+	@echo "    make docker-clean     - Remove ALL Docker containers, images, volumes"
 	@echo ""
 	@echo "  Configuration: Edit config.env for model/endpoint settings"
 	@echo "═══════════════════════════════════════════════════════════════════════"
@@ -42,9 +44,8 @@ litellm:
 	@echo ""
 	@echo "  Starting LiteLLM Proxy on port $(LITELLM_PORT)..."
 	@echo ""
-	@litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) 2>/dev/null | \
-		grep -v "Thank you" | grep -v "Give Feedback" | grep -v "BerriAI" | \
-		grep -v "help me if" | grep -v "would help" | grep -v "#----"
+	@litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) 2>&1 | \
+		grep -E "^(INFO:|LiteLLM: Proxy initialized)"
 
 litellm-start:
 	@if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
@@ -87,6 +88,9 @@ tau-bench: setup
 terminal-bench: setup
 	@cd benchmarks && ./terminal_bench.sh
 
+terminal-bench-2: setup
+	@cd benchmarks && bash terminal_bench_2.sh
+
 terminal-bench-resume: setup
 	@if [ -z "$(CHECKPOINT)" ]; then \
 		echo "Usage: make terminal-bench-resume CHECKPOINT=<path>"; \
@@ -111,7 +115,28 @@ terminal-bench-list:
 	done 2>/dev/null || echo "  No checkpoints found"
 
 clean:
-	@echo "Cleaning up Docker containers..."
+	@echo "Cleaning up Terminal-Bench Docker containers..."
 	@docker ps -q --filter "name=tb-" 2>/dev/null | xargs -r docker kill 2>/dev/null || true
-	@docker ps -aq --filter "name=tb-" 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true	@docker container prune -f 2>/dev/null | grep -v "^$$" || true
+	@docker ps -aq --filter "name=tb-" 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true
+	@docker container prune -f 2>/dev/null | grep -v "^$$" || true
 	@echo "✓ Done"
+
+docker-clean:
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo "  Removing ALL Docker resources..."
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "→ Stopping all containers..."
+	@docker ps -q 2>/dev/null | xargs -r docker kill 2>/dev/null || true
+	@echo "→ Removing all containers..."
+	@docker ps -aq 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true
+	@echo "→ Removing all images..."
+	@docker images -q 2>/dev/null | xargs -r docker rmi -f 2>/dev/null || true
+	@echo "→ Removing all volumes..."
+	@docker volume ls -q 2>/dev/null | xargs -r docker volume rm -f 2>/dev/null || true
+	@echo "→ Removing all networks (except defaults)..."
+	@docker network ls -q --filter "type=custom" 2>/dev/null | xargs -r docker network rm 2>/dev/null || true
+	@echo "→ Final prune (build cache, dangling)..."
+	@docker system prune -af --volumes 2>/dev/null || true
+	@echo ""
+	@echo "✓ Docker cleaned completely"
