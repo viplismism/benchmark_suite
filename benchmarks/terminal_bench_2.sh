@@ -95,7 +95,14 @@ echo "→ Starting evaluation (Ctrl+C to stop)..."
 echo ""
 
 set +e
-script -q /dev/null bash -c "$RUN_CMD" 2>&1 | sed -u '/litellm.ai/d;/Provider List/d;/Failed to retrieve model info/d;/fallback context limit/d;/docs\/providers/d'
+# script command has different syntax on macOS vs Linux
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS: script -q /dev/null command
+  script -q /dev/null bash -c "$RUN_CMD" 2>&1 | sed -u '/litellm.ai/d;/Provider List/d;/Failed to retrieve model info/d;/fallback context limit/d;/docs\/providers/d'
+else
+  # Linux: script -q -c "command" /dev/null
+  script -q -c "$RUN_CMD" /dev/null 2>&1 | sed -u '/litellm.ai/d;/Provider List/d;/Failed to retrieve model info/d;/fallback context limit/d;/docs\/providers/d'
+fi
 RUN_EXIT=${PIPESTATUS[0]}
 set -e
 
