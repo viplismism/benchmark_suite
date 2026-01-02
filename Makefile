@@ -39,20 +39,20 @@ LITELLM_CONFIG := litellm_config.yaml
 LITELLM_LOG := .litellm.log
 LITELLM_PID := .litellm.pid
 LITELLM_KEY := sk-litellm-proxy-key-123
+VENV := .venv/bin
 
 litellm:
 	@echo ""
 	@echo "  Starting LiteLLM Proxy on port $(LITELLM_PORT)..."
 	@echo ""
-	@litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) 2>&1 | \
-		grep -E "^(INFO:|LiteLLM: Proxy initialized)"
+	@$(VENV)/litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT)
 
 litellm-start:
 	@if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
 		echo "✓ LiteLLM already running on port $(LITELLM_PORT)"; \
 	else \
 		echo "Starting LiteLLM on port $(LITELLM_PORT)..."; \
-		litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) >> $(LITELLM_LOG) 2>&1 & \
+		$(VENV)/litellm --config $(LITELLM_CONFIG) --port $(LITELLM_PORT) >> $(LITELLM_LOG) 2>&1 & \
 		echo $$! > $(LITELLM_PID); \
 		sleep 5; \
 		if curl -s -H "Authorization: Bearer $(LITELLM_KEY)" http://localhost:$(LITELLM_PORT)/health >/dev/null 2>&1; then \
