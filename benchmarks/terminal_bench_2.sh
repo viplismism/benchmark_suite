@@ -65,10 +65,8 @@ else
   fi
 fi
 
-# Change to results directory so Harbor saves jobs there
 cd "$RESULTS_DIR"
 
-# Compose run command
 RUN_CMD="$HARBOR_CMD --dataset terminal-bench@2.0 --agent $AGENT_NAME --model $MODEL_NAME --n-concurrent $CONCURRENT --n-attempts $ATTEMPTS --timeout-multiplier $TIMEOUT_MULTIPLIER --max-retries $MAX_RETRIES"
 
 # Add task-name argument(s) if not 'all'
