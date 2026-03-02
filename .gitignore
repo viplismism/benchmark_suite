@@ -5,6 +5,12 @@ benchmark_results/
 benchmarks/tau_bench/
 benchmarks/terminal_bench/
 benchmarks/humaneval_rust/
+benchmarks/swe_bench_repo/
+benchmarks/swe_agent/
+benchmarks/bigcodebench_repo/
+benchmarks/gpqa_repo/
+benchmarks/logs/
+benchmarks/*.json
 
 # Config files with secrets
 config.env

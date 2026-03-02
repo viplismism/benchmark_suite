@@ -16,6 +16,9 @@ make litellm
 # 3. Run benchmarks (in another terminal)
 make tau-bench
 make terminal-bench
+make swe-bench
+make bigcodebench
+make gpqa
 ```
 
 ## Available Commands
@@ -34,6 +37,10 @@ make tau-bench               # Run τ-Bench evaluation
 make terminal-bench          # Run Terminal-Bench evaluation
 make terminal-bench-resume CHECKPOINT=<path>
 make terminal-bench-list     # List checkpoints
+make swe-bench               # Run SWE-bench Verified evaluation
+make swe-bench-clean         # Remove SWE-bench Docker images
+make bigcodebench            # Run BigCodeBench evaluation
+make gpqa                    # Run GPQA Diamond evaluation
 ```
 
 ## Configuration
@@ -55,6 +62,21 @@ TAU_BENCH_USER_MODEL="gpt-4o"       # User simulator model
 TERMINAL_BENCH_MODEL="your-model"
 TERMINAL_BENCH_TASKS="all"
 TERMINAL_BENCH_CONCURRENT="8"
+
+# SWE-bench Verified
+SWE_BENCH_MODEL="your-model"
+SWE_BENCH_MAX_WORKERS="4"
+SWE_BENCH_INSTANCE_LIMIT=""         # empty = all 500
+
+# BigCodeBench
+BIGCODEBENCH_MODEL="your-model"
+BIGCODEBENCH_SPLIT="instruct"       # "complete" or "instruct"
+BIGCODEBENCH_SUBSET="hard"          # "full" (1140) or "hard" (150)
+
+# GPQA
+GPQA_MODEL="your-model"
+GPQA_SUBSET="diamond"               # "diamond", "main", or "extended"
+HF_TOKEN="your-hf-token"            # required for GPQA (gated dataset)
 ```
 
 ### litellm_config.yaml
@@ -75,24 +97,37 @@ general_settings:
 
 Results are saved in `benchmark_results/`:
 
-```python
+```
 benchmark_results/
 ├── tau_bench/
-│   └── tau_bench_20241210_193000/
+│   └── tau_bench_YYYYMMDD_HHMMSS_MODEL/
 │       ├── evaluation_results.json
 │       └── run.log
-└── terminal_bench/
-    └── terminal_bench_20241210_193000/
-        ├── summary.json
-        └── session_*/
+├── terminal_bench/
+│   └── terminal_bench_YYYYMMDD_HHMMSS_MODEL/
+│       ├── summary.json
+│       └── session_*/
+├── swe_bench/
+│   └── swe_bench_YYYYMMDD_HHMMSS_MODEL/
+│       ├── predictions.jsonl
+│       ├── summary.json
+│       └── run.log
+├── bigcodebench/
+│   └── bigcodebench_YYYYMMDD_HHMMSS_MODEL/
+│       └── summary.json
+└── gpqa/
+    └── gpqa_YYYYMMDD_HHMMSS_MODEL/
+        └── summary.json
 ```
 
 ## Requirements
 
-- Python 3.10+ (for τ-Bench)
+- Python 3.10+ (for τ-Bench, SWE-bench, BigCodeBench, GPQA)
 - Python 3.12+ (for Terminal-Bench)
-- Docker (for Terminal-Bench)
+- Docker (for Terminal-Bench, SWE-bench)
 - LiteLLM (`pip install litellm`)
+- HuggingFace token (for GPQA — gated dataset)
+- ~120GB+ free disk space (for SWE-bench Docker images)
 
 ## License
 

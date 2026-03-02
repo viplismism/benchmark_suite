@@ -1,5 +1,6 @@
 .PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
-		tau-bench terminal-bench terminal-bench-2 terminal-bench-resume terminal-bench-list clean docker-clean
+		tau-bench terminal-bench terminal-bench-2 terminal-bench-resume terminal-bench-list \
+		swe-bench swe-bench-clean bigcodebench gpqa clean docker-clean
 
 help:
 	@echo "═══════════════════════════════════════════════════════════════════════"
@@ -20,6 +21,10 @@ help:
 	@echo "    make terminal-bench-2 - Run Terminal-Bench 2.0 evaluation"
 	@echo "    make terminal-bench-resume CHECKPOINT=<path>"
 	@echo "    make terminal-bench-list"
+	@echo "    make swe-bench        - Run SWE-bench Verified evaluation"
+	@echo "    make swe-bench-clean  - Remove SWE-bench Docker images"
+	@echo "    make bigcodebench     - Run BigCodeBench evaluation"
+	@echo "    make gpqa             - Run GPQA Diamond evaluation"
 	@echo ""
 	@echo "  Utilities:"
 	@echo "    make setup            - Setup environment"
@@ -100,6 +105,20 @@ terminal-bench-resume: setup
 	else \
 		cd benchmarks && TERMINAL_BENCH_RESUME="$(CHECKPOINT)" ./terminal_bench.sh; \
 	fi
+
+swe-bench: setup
+	@cd benchmarks && ./swe_bench.sh
+
+swe-bench-clean:
+	@echo "Cleaning SWE-bench Docker resources..."
+	@docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^(swe-bench|sweb)' | xargs -r docker rmi -f 2>/dev/null || true
+	@echo "✓ Done"
+
+bigcodebench: setup
+	@cd benchmarks && ./bigcodebench.sh
+
+gpqa: setup
+	@cd benchmarks && ./gpqa.sh
 
 terminal-bench-list:
 	@echo "Terminal-Bench Checkpoints:"
