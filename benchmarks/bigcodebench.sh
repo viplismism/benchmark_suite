@@ -10,6 +10,7 @@ source "$CONFIG_FILE"
 BIGCODEBENCH_MODEL="${BIGCODEBENCH_MODEL:-${TERMINAL_BENCH_MODEL:-}}"
 BIGCODEBENCH_SPLIT="${BIGCODEBENCH_SPLIT:-instruct}"
 BIGCODEBENCH_SUBSET="${BIGCODEBENCH_SUBSET:-hard}"
+BIGCODEBENCH_LIMIT="${BIGCODEBENCH_LIMIT:-}"   # empty = all, or a number
 PROXY_ENDPOINT="${MODEL_ENDPOINT:-http://localhost:8001}"
 API_KEY="${LITELLM_PROXY_KEY:-sk-litellm-proxy-key-123}"
 
@@ -64,7 +65,23 @@ source "$VENV_DIR/bin/activate"
 
 echo "→ Installing dependencies..."
 pip install --quiet --upgrade pip
-pip install --quiet bigcodebench 2>/dev/null
+
+# BigCodeBench requires vllm/torch — only available on Linux with CUDA.
+# On macOS, try installing without vllm and hope the openai backend works.
+if pip install --quiet bigcodebench 2>/dev/null; then
+    echo "  ✓ bigcodebench installed"
+else
+    echo "  ⚠ Full install failed (likely missing torch/vllm). Trying without GPU deps..."
+    pip install --quiet --no-deps bigcodebench 2>/dev/null
+    pip install --quiet openai datasets tqdm numpy transformers tree_sitter 'tree-sitter-python>=0.21.0' wget multipledispatch pqdm tempdir termcolor 2>/dev/null
+    # Verify the generate command is available
+    if ! python -c "from bigcodebench.generate import main" 2>/dev/null; then
+        echo "  ✗ BigCodeBench requires PyTorch/vllm which is not available on this platform."
+        echo "    Run this benchmark on a Linux machine with CUDA."
+        deactivate
+        exit 1
+    fi
+fi
 
 # ─── Phase 1: Code Generation ────────────────────────────────────────────────
 
@@ -76,15 +93,21 @@ export OPENAI_API_KEY="$API_KEY"
 
 GENERATE_OUTPUT="${BIGCODEBENCH_RESULTS_DIR}/generated_${BIGCODEBENCH_SPLIT}_${BIGCODEBENCH_SUBSET}.jsonl"
 
-bigcodebench.generate \
-    --model "$BIGCODEBENCH_MODEL" \
-    --split "$BIGCODEBENCH_SPLIT" \
-    --subset "$BIGCODEBENCH_SUBSET" \
+GENERATE_CMD="bigcodebench.generate \
+    --model $BIGCODEBENCH_MODEL \
+    --split $BIGCODEBENCH_SPLIT \
+    --subset $BIGCODEBENCH_SUBSET \
     --backend openai \
-    --base_url "${PROXY_ENDPOINT}/v1" \
+    --base_url ${PROXY_ENDPOINT}/v1 \
     --temperature 0.0 \
     --n_samples 1 \
-    --greedy 2>&1 | tee "${BIGCODEBENCH_RESULTS_DIR}/generate.log"
+    --greedy"
+
+if [ -n "$BIGCODEBENCH_LIMIT" ]; then
+    GENERATE_CMD="$GENERATE_CMD --limit $BIGCODEBENCH_LIMIT"
+fi
+
+eval $GENERATE_CMD 2>&1 | tee "${BIGCODEBENCH_RESULTS_DIR}/generate.log"
 
 GENERATE_EXIT=${PIPESTATUS[0]}
 

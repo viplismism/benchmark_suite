@@ -8,6 +8,7 @@ source "$CONFIG_FILE"
 
 # Config defaults
 HUMANEVAL_MODEL="${HUMANEVAL_MODEL:-${TERMINAL_BENCH_MODEL:-}}"
+HUMANEVAL_LIMIT="${HUMANEVAL_LIMIT:-}"         # empty = all 161, or a number
 PROXY_ENDPOINT="${MODEL_ENDPOINT:-http://localhost:8001}"
 API_KEY="${LITELLM_PROXY_KEY:-sk-litellm-proxy-key-123}"
 
@@ -25,7 +26,11 @@ echo "════════════════════════�
 echo "  HumanEval-Rust Evaluation"
 echo "═══════════════════════════════════════════════════════════════════════"
 echo "  Model:    $HUMANEVAL_MODEL"
-echo "  Tasks:    161 problems"
+if [ -n "$HUMANEVAL_LIMIT" ]; then
+    echo "  Tasks:    $HUMANEVAL_LIMIT problems (limited)"
+else
+    echo "  Tasks:    161 problems"
+fi
 echo "  Results:  $HUMANEVAL_RESULTS_DIR"
 echo "═══════════════════════════════════════════════════════════════════════"
 echo ""
@@ -144,6 +149,11 @@ def run_humaneval():
     print(f"Loaded {len(problems_data)} problems")
 
     problems = [{"name": item["name"], "prompt": item["prompt"], "tests": item["tests"]} for item in problems_data]
+
+    limit = os.environ.get("HUMANEVAL_LIMIT", "")
+    if limit:
+        problems = problems[:int(limit)]
+        print(f"Limited to {len(problems)} problems")
     results = []
     total_input_tokens = 0
     total_output_tokens = 0
@@ -213,7 +223,7 @@ if __name__ == "__main__":
     run_humaneval()
 PYTHON_SCRIPT
 
-export PROXY_ENDPOINT HUMANEVAL_MODEL HUMANEVAL_RESULTS_DIR API_KEY
+export PROXY_ENDPOINT HUMANEVAL_MODEL HUMANEVAL_RESULTS_DIR API_KEY HUMANEVAL_LIMIT
 
 python "${HUMANEVAL_RESULTS_DIR}/run_evaluation.py" 2>&1 | tee "${HUMANEVAL_RESULTS_DIR}/run.log"
 EXIT_CODE=${PIPESTATUS[0]}

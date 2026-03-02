@@ -9,6 +9,7 @@ source "$CONFIG_FILE"
 # Config defaults
 GPQA_MODEL="${GPQA_MODEL:-${TERMINAL_BENCH_MODEL:-}}"
 GPQA_SUBSET="${GPQA_SUBSET:-diamond}"
+GPQA_LIMIT="${GPQA_LIMIT:-}"               # empty = all, or a number
 HF_TOKEN="${HF_TOKEN:-}"
 PROXY_ENDPOINT="${MODEL_ENDPOINT:-http://localhost:8001}"
 API_KEY="${LITELLM_PROXY_KEY:-sk-litellm-proxy-key-123}"
@@ -33,7 +34,11 @@ echo "════════════════════════�
 echo "  GPQA Diamond Evaluation"
 echo "═══════════════════════════════════════════════════════════════════════"
 echo "  Model:    $GPQA_MODEL"
-echo "  Subset:   $GPQA_SUBSET ($TASK_COUNT questions)"
+if [ -n "$GPQA_LIMIT" ]; then
+    echo "  Subset:   $GPQA_SUBSET ($GPQA_LIMIT of $TASK_COUNT questions)"
+else
+    echo "  Subset:   $GPQA_SUBSET ($TASK_COUNT questions)"
+fi
 echo "  Results:  $GPQA_RESULTS_DIR"
 echo "═══════════════════════════════════════════════════════════════════════"
 echo ""
@@ -103,6 +108,11 @@ def main():
     print(f"Loading GPQA {subset} from HuggingFace...")
     ds = load_dataset("Idavidrein/gpqa", dataset_subset, token=hf_token, split="train")
     print(f"Loaded {len(ds)} questions")
+
+    limit = os.environ.get("GPQA_LIMIT", "")
+    if limit:
+        ds = ds.select(range(min(int(limit), len(ds))))
+        print(f"Limited to {len(ds)} questions")
 
     results = []
     correct = 0
@@ -239,7 +249,7 @@ if __name__ == "__main__":
     main()
 PYTHON_EOF
 
-export GPQA_MODEL GPQA_SUBSET GPQA_RESULTS_DIR PROXY_ENDPOINT API_KEY HF_TOKEN
+export GPQA_MODEL GPQA_SUBSET GPQA_LIMIT GPQA_RESULTS_DIR PROXY_ENDPOINT API_KEY HF_TOKEN
 
 python "${GPQA_RESULTS_DIR}/run_gpqa.py" 2>&1 | tee "${GPQA_RESULTS_DIR}/run.log"
 EXIT_CODE=${PIPESTATUS[0]}
