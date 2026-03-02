@@ -1,6 +1,7 @@
 .PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
 		tau-bench terminal-bench terminal-bench-2 terminal-bench-resume terminal-bench-list \
-		swe-bench swe-bench-clean bigcodebench gpqa clean docker-clean
+		humaneval swe-bench swe-bench-clean bigcodebench gpqa \
+		all results clean docker-clean
 
 help:
 	@echo "═══════════════════════════════════════════════════════════════════════"
@@ -16,6 +17,7 @@ help:
 	@echo "    make litellm-tail     - Follow logs in real-time"
 	@echo ""
 	@echo "  Benchmarks:"
+	@echo "    make humaneval        - Run HumanEval-Rust evaluation"
 	@echo "    make tau-bench        - Run τ-Bench evaluation"
 	@echo "    make terminal-bench   - Run Terminal-Bench evaluation"
 	@echo "    make terminal-bench-2 - Run Terminal-Bench 2.0 evaluation"
@@ -25,6 +27,10 @@ help:
 	@echo "    make swe-bench-clean  - Remove SWE-bench Docker images"
 	@echo "    make bigcodebench     - Run BigCodeBench evaluation"
 	@echo "    make gpqa             - Run GPQA Diamond evaluation"
+	@echo ""
+	@echo "  Suite:"
+	@echo "    make all              - Run all benchmarks sequentially"
+	@echo "    make results          - Show results from all benchmark runs"
 	@echo ""
 	@echo "  Utilities:"
 	@echo "    make setup            - Setup environment"
@@ -117,8 +123,52 @@ swe-bench-clean:
 bigcodebench: setup
 	@cd benchmarks && ./bigcodebench.sh
 
+humaneval: setup
+	@cd benchmarks && ./humaneval.sh
+
 gpqa: setup
 	@cd benchmarks && ./gpqa.sh
+
+all: setup
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo "  Running All Benchmarks"
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo ""
+	@for bench in humaneval gpqa bigcodebench tau-bench swe-bench; do \
+		echo "─── $$bench ───"; \
+		$(MAKE) --no-print-directory $$bench || echo "⚠ $$bench failed, continuing..."; \
+		echo ""; \
+	done
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo "  All benchmarks complete. Run 'make results' to see summary."
+	@echo "═══════════════════════════════════════════════════════════════════════"
+
+results:
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo "  Benchmark Results"
+	@echo "═══════════════════════════════════════════════════════════════════════"
+	@echo ""
+	@python3 -c "\
+	import json; from pathlib import Path; \
+	results_dir = Path('benchmark_results'); \
+	entries = []; \
+	[entries.append(( \
+	    (d:=json.load(open(s))).get('benchmark', s.parent.parent.name), \
+	    d.get('model','?'), \
+	    d.get('timestamp','?')[:19], \
+	    (r:=d.get('results',{})).get('passed', r.get('correct', r.get('resolved','?'))), \
+	    r.get('total_tasks', r.get('total_problems', r.get('total_questions', r.get('total_instances', r.get('total','?'))))), \
+	    r.get('accuracy', r.get('pass_rate','?')) \
+	)) for s in sorted(results_dir.glob('**/summary.json')) if s.stat().st_size > 0] \
+	    if results_dir.exists() else None; \
+	print('  No results found. Run a benchmark first.') if not entries else None; \
+	print(f\"  {'Benchmark':<22} {'Model':<28} {'Score':<16} {'Date'}\") if entries else None; \
+	print(f\"  {'─'*22} {'─'*28} {'─'*16} {'─'*19}\") if entries else None; \
+	[print(f'  {b:<22} {m:<28} {str(p)+\"/\"+str(t)+\" (\"+str(a)+\"%)\":<16} {ts}') \
+	    for b,m,ts,p,t,a in sorted(entries, key=lambda x:x[2], reverse=True)] if entries else None; \
+	print() if entries else None; \
+	" 2>/dev/null || echo "  No results found. Run a benchmark first."
+	@echo "═══════════════════════════════════════════════════════════════════════"
 
 terminal-bench-list:
 	@echo "Terminal-Bench Checkpoints:"

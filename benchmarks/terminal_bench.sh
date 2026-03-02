@@ -3,7 +3,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${SCRIPT_DIR}/../config.env"
-[ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
+[ ! -f "$CONFIG_FILE" ] && echo "Error: Config file not found at $CONFIG_FILE" && exit 1
+source "$CONFIG_FILE"
 
 PROXY_ENDPOINT="http://localhost:8001"
 TERMINAL_BENCH_RESUME="${TERMINAL_BENCH_RESUME:-}"

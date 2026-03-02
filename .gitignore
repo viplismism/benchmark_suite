@@ -20,11 +20,12 @@ litellm_config.yaml
 .litellm.log
 .litellm.pid
 
-# Python
+# Python virtual environments
 __pycache__/
 *.py[cod]
-venv/
 .venv/
+venv/
+env/
 *.egg-info/
 
 # OS
@@ -43,7 +44,3 @@ venv/
 
 # Scripts
 *scripts/
-
-# Envioronment files
-.env/
-*env/
