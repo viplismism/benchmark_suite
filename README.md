@@ -38,6 +38,119 @@ make all
 make results
 ```
 
+## Example Output
+
+### Running a benchmark
+
+```
+═══════════════════════════════════════════════════════════════════════
+  GPQA Diamond Evaluation
+═══════════════════════════════════════════════════════════════════════
+  Model:    claude-haiku
+  Subset:   diamond (198 questions)
+  Results:  ./benchmark_results/gpqa/gpqa_20260304_152831_claude-haiku
+═══════════════════════════════════════════════════════════════════════
+
+→ Installing dependencies...
+→ Running GPQA evaluation...
+Loading GPQA diamond from HuggingFace...
+Loaded 198 questions
+
+[1/198] ✓ predicted=B correct=B
+[2/198] ✗ predicted=A correct=C
+[3/198] ✓ predicted=D correct=D
+...
+
+======================================================================
+  GPQA RESULTS
+======================================================================
+  Model:     claude-haiku
+  Subset:    diamond
+  Accuracy:  72/198 (36.36%)
+  Tokens:    284,190
+  Random baseline: 25.0%
+======================================================================
+```
+
+### HumanEval-Rust
+
+```
+═══════════════════════════════════════════════════════════════════════
+  HumanEval-Rust Evaluation
+═══════════════════════════════════════════════════════════════════════
+  Model:    claude-haiku
+  Tasks:    161 problems
+═══════════════════════════════════════════════════════════════════════
+
+→ Running evaluation...
+Loading HumanEval-Rust dataset from HuggingFace...
+Loaded 161 problems
+[1/161] HumanEval_0_has_close_elements ✓
+[2/161] HumanEval_1_separate_paren_groups ✓
+[3/161] HumanEval_2_truncate_number ✓
+...
+
+══════════════════════════════════════════════════════════════════════
+  HUMANEVAL-RUST RESULTS
+══════════════════════════════════════════════════════════════════════
+  Model:     claude-haiku
+  Tasks:     118/161 passed (73.3%)
+══════════════════════════════════════════════════════════════════════
+```
+
+### SWE-bench Verified
+
+```
+═══════════════════════════════════════════════════════════════════════
+  SWE-bench Verified Evaluation
+═══════════════════════════════════════════════════════════════════════
+  Model:        claude-haiku
+  Dataset:      princeton-nlp/SWE-bench_Verified
+  Agent:        simple
+  Max Workers:  4
+  Instances:    all (500)
+═══════════════════════════════════════════════════════════════════════
+
+→ Checking prerequisites...
+  ✓ Docker is running (socket: unix:///Users/dev/.orbstack/run/docker.sock)
+  ✓ ARM architecture detected — will use --namespace ''
+
+→ Phase 1: Inference (generating patches)...
+[1/500] astropy__astropy-12907
+  ✓ Patch generated (1284 chars)
+[2/500] django__django-11099
+  ✓ Patch generated (856 chars)
+...
+
+→ Phase 2: Evaluation (running tests in Docker)...
+...
+
+══════════════════════════════════════════════════════════════════════
+  SWE-BENCH VERIFIED RESULTS
+══════════════════════════════════════════════════════════════════════
+  Model:       claude-haiku
+  Instances:   500
+  Resolved:    23/500 (4.6%)
+══════════════════════════════════════════════════════════════════════
+```
+
+### Viewing results across runs
+
+```
+$ make results
+═══════════════════════════════════════════════════════════════════════
+  Benchmark Results
+═══════════════════════════════════════════════════════════════════════
+
+  Benchmark              Model                        Score            Date
+  ────────────────────── ──────────────────────────── ──────────────── ───────────────────
+  gpqa                   claude-haiku                 72/198 (36.36%) 2026-03-04T15:28:31
+  humaneval-rust         claude-haiku                 118/161 (73.3%) 2026-03-04T15:15:02
+  swe-bench-verified     claude-haiku                 23/500 (4.6%)   2026-03-04T15:38:52
+
+═══════════════════════════════════════════════════════════════════════
+```
+
 ## Available Commands
 
 ```bash
@@ -137,6 +250,25 @@ benchmark_results/
 ```
 
 Use `make results` to view a summary table across all runs.
+
+## Project Structure
+
+```
+benchmark_suite/
+├── benchmarks/          # Benchmark scripts only
+│   ├── humaneval.sh
+│   ├── gpqa.sh
+│   ├── bigcodebench.sh
+│   ├── swe_bench.sh
+│   ├── tau_bench.sh
+│   ├── terminal_bench.sh
+│   └── terminal_bench_2.sh
+├── config.env.example   # Configuration template
+├── litellm_config.yaml.example
+├── Makefile             # All commands
+├── benchmark_results/   # Output (created on run)
+└── .cache/              # Venvs & cloned repos (created on run)
+```
 
 ## Requirements
 
