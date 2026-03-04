@@ -318,6 +318,9 @@ echo "→ Phase 2: Evaluation (running tests in Docker)..."
 echo "  This may take a long time depending on the number of instances."
 echo ""
 
+# Run evaluation from the results directory so all output (logs/, JSONs) lands there
+pushd "$SWE_BENCH_RESULTS_DIR" > /dev/null
+
 EVAL_CMD="python -m swebench.harness.run_evaluation \
     --predictions_path $PREDICTIONS_FILE \
     --dataset_name $SWE_BENCH_DATASET \
@@ -331,18 +334,29 @@ fi
 eval $EVAL_CMD 2>&1 | tee -a "${SWE_BENCH_RESULTS_DIR}/run.log"
 EVAL_EXIT=${PIPESTATUS[0]}
 
+popd > /dev/null
+
 if [ $EVAL_EXIT -ne 0 ]; then
     echo ""
     echo "⚠ Evaluation exited with code $EVAL_EXIT (some instances may have failed)"
 fi
 
-# Move evaluation logs if they exist
+# Move any stray evaluation artifacts from the script directory into results
 for log_dir in logs/build_images logs/run_evaluation; do
-    if [ -d "$log_dir" ]; then
+    if [ -d "${SCRIPT_DIR}/${log_dir}" ]; then
         mkdir -p "${SWE_BENCH_RESULTS_DIR}/${log_dir}"
-        cp -r "$log_dir"/* "${SWE_BENCH_RESULTS_DIR}/${log_dir}/" 2>/dev/null || true
+        cp -r "${SCRIPT_DIR}/${log_dir}"/* "${SWE_BENCH_RESULTS_DIR}/${log_dir}/" 2>/dev/null || true
+        rm -rf "${SCRIPT_DIR}/${log_dir}" 2>/dev/null || true
     fi
 done
+
+# Move any stray JSON result files from the script directory
+for f in "${SCRIPT_DIR}"/*.swe_bench_*.json "${SCRIPT_DIR}"/${SWE_BENCH_MODEL}.*.json; do
+    [ -f "$f" ] && mv "$f" "${SWE_BENCH_RESULTS_DIR}/" 2>/dev/null || true
+done
+
+# Clean empty logs directory if left behind
+rmdir "${SCRIPT_DIR}/logs" 2>/dev/null || true
 
 # ─── Phase 3: Results Aggregation ────────────────────────────────────────────
 
