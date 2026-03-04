@@ -85,7 +85,7 @@ TERMINAL_BENCH_TASKS="${TERMINAL_BENCH_TASKS:-all}"
 TERMINAL_BENCH_CONCURRENT="${TERMINAL_BENCH_CONCURRENT:-8}"
 TERMINAL_BENCH_AGENT_TIMEOUT="${TERMINAL_BENCH_AGENT_TIMEOUT:-7200}"
 TERMINAL_BENCH_TEST_TIMEOUT="${TERMINAL_BENCH_TEST_TIMEOUT:-3600}"
-BENCHMARK_DIR="${SCRIPT_DIR}/terminal_bench"
+BENCHMARK_DIR="${SCRIPT_DIR}/../.cache/terminal_bench"
 
 echo "═══════════════════════════════════════════════════════════════════════"
 echo "  Terminal-Bench Evaluation"

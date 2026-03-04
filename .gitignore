@@ -1,16 +1,8 @@
 # Benchmark Results
 benchmark_results/
 
-# Cloned Benchmark Repositories (created during runs)
-benchmarks/tau_bench/
-benchmarks/terminal_bench/
-benchmarks/humaneval_rust/
-benchmarks/swe_bench_repo/
-benchmarks/swe_agent/
-benchmarks/bigcodebench_repo/
-benchmarks/gpqa_repo/
-benchmarks/logs/
-benchmarks/*.json
+# Runtime cache (venvs, cloned repos, datasets — created during runs)
+.cache/
 
 # Config files with secrets
 config.env

@@ -21,7 +21,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BIGCODEBENCH_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/bigcodebench/bigcodebench_${TIMESTAMP}_${BIGCODEBENCH_MODEL}"
 mkdir -p "$BIGCODEBENCH_RESULTS_DIR"
 BIGCODEBENCH_RESULTS_DIR=$(cd "$BIGCODEBENCH_RESULTS_DIR" && pwd)
-BENCHMARK_DIR="${SCRIPT_DIR}/bigcodebench_repo"
+BENCHMARK_DIR="${SCRIPT_DIR}/../.cache/bigcodebench"
 VENV_DIR="${BENCHMARK_DIR}/venv"
 
 TASK_COUNT="1140"

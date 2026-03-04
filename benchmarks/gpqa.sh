@@ -27,7 +27,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 GPQA_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/gpqa/gpqa_${TIMESTAMP}_${GPQA_MODEL}"
 mkdir -p "$GPQA_RESULTS_DIR"
 GPQA_RESULTS_DIR=$(cd "$GPQA_RESULTS_DIR" && pwd)
-BENCHMARK_DIR="${SCRIPT_DIR}/gpqa_repo"
+BENCHMARK_DIR="${SCRIPT_DIR}/../.cache/gpqa"
 VENV_DIR="${BENCHMARK_DIR}/venv"
 
 echo "═══════════════════════════════════════════════════════════════════════"

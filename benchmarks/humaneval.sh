@@ -19,7 +19,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 HUMANEVAL_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/humaneval/humaneval_${TIMESTAMP}_${HUMANEVAL_MODEL}"
 mkdir -p "$HUMANEVAL_RESULTS_DIR"
 HUMANEVAL_RESULTS_DIR=$(cd "$HUMANEVAL_RESULTS_DIR" && pwd)
-BENCHMARK_DIR="${SCRIPT_DIR}/humaneval_rust"
+BENCHMARK_DIR="${SCRIPT_DIR}/../.cache/humaneval"
 VENV_DIR="${BENCHMARK_DIR}/venv"
 
 echo "═══════════════════════════════════════════════════════════════════════"

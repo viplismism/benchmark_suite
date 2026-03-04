@@ -25,7 +25,7 @@ SWE_BENCH_RESULTS_DIR="${SCRIPT_DIR}/../benchmark_results/swe_bench/swe_bench_${
 mkdir -p "$SWE_BENCH_RESULTS_DIR"
 SWE_BENCH_RESULTS_DIR=$(cd "$SWE_BENCH_RESULTS_DIR" && pwd)
 RUN_ID="swe_bench_${TIMESTAMP}"
-BENCHMARK_DIR="${SCRIPT_DIR}/swe_bench_repo"
+BENCHMARK_DIR="${SCRIPT_DIR}/../.cache/swe_bench"
 VENV_DIR="${BENCHMARK_DIR}/venv"
 
 echo "═══════════════════════════════════════════════════════════════════════"
