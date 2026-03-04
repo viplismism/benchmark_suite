@@ -134,7 +134,7 @@ all: setup
 	@echo "  Running All Benchmarks"
 	@echo "═══════════════════════════════════════════════════════════════════════"
 	@echo ""
-	@for bench in humaneval gpqa bigcodebench tau-bench swe-bench; do \
+	@for bench in humaneval gpqa bigcodebench tau-bench terminal-bench terminal-bench-2 swe-bench; do \
 		echo "─── $$bench ───"; \
 		$(MAKE) --no-print-directory $$bench || echo "⚠ $$bench failed, continuing..."; \
 		echo ""; \

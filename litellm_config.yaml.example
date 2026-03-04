@@ -1,15 +1,37 @@
-# LiteLLM Configuration - Copy to litellm_config.yaml and fill in your values
+# ═══════════════════════════════════════════════════════════════════════
+#  LiteLLM Proxy Configuration
+# ═══════════════════════════════════════════════════════════════════════
+#  Copy to litellm_config.yaml and fill in your values:
+#    cp litellm_config.yaml.example litellm_config.yaml
+#
+#  Docs: https://docs.litellm.ai/docs/proxy/configs
+# ═══════════════════════════════════════════════════════════════════════
 
 model_list:
-  - model_name: your-model-name
+  # ─── Anthropic ──────────────────────────────────────────────────────
+  - model_name: claude-haiku
     litellm_params:
-      model: openai/your-model-name
-      api_base: http://your-server:8001/v1
-      api_key: your-api-key-here
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ─── OpenAI ─────────────────────────────────────────────────────────
+  # - model_name: gpt-4o
+  #   litellm_params:
+  #     model: openai/gpt-4o
+  #     api_key: os.environ/OPENAI_API_KEY
+
+  # ─── OpenAI-compatible (self-hosted / third-party) ──────────────────
+  # - model_name: my-model
+  #   litellm_params:
+  #     model: openai/my-model
+  #     api_base: http://your-server:8000/v1
+  #     api_key: your-api-key
+  #     temperature: 0.7
+  #     max_tokens: 16384
 
 general_settings:
-  master_key: your-master-key-here
+  master_key: sk-litellm-proxy-key-123
 
 litellm_settings:
-  drop_params: true
+  drop_params: false
   set_verbose: false
