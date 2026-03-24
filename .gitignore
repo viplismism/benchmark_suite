@@ -30,6 +30,9 @@ env/
 # Logs
 *.log
 
+# Archives (external run logs for comparison)
+archives/
+
 # Temporary
 *.tmp
 *.temp
