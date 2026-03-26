@@ -1,6 +1,6 @@
 .PHONY: help setup litellm litellm-start litellm-stop litellm-status litellm-logs litellm-tail \
 		tau-bench terminal-bench terminal-bench-2 terminal-bench-resume terminal-bench-list \
-		humaneval swe-bench swe-bench-clean bigcodebench gpqa \
+		humaneval swe-bench swe-bench-clean bigcodebench gpqa codesearch \
 		all results clean docker-clean
 
 help:
@@ -27,6 +27,7 @@ help:
 	@echo "    make swe-bench-clean  - Remove SWE-bench Docker images"
 	@echo "    make bigcodebench     - Run BigCodeBench evaluation"
 	@echo "    make gpqa             - Run GPQA Diamond evaluation"
+	@echo "    make codesearch       - Run CodeSearchNet retrieval evaluation"
 	@echo ""
 	@echo "  Suite:"
 	@echo "    make all              - Run all benchmarks sequentially"
@@ -129,12 +130,15 @@ humaneval: setup
 gpqa: setup
 	@cd benchmarks && ./gpqa.sh
 
+codesearch: setup
+	@cd benchmarks && ./codesearch.sh
+
 all: setup
 	@echo "═══════════════════════════════════════════════════════════════════════"
 	@echo "  Running All Benchmarks"
 	@echo "═══════════════════════════════════════════════════════════════════════"
 	@echo ""
-	@for bench in humaneval gpqa bigcodebench tau-bench terminal-bench terminal-bench-2 swe-bench; do \
+	@for bench in humaneval gpqa bigcodebench codesearch tau-bench terminal-bench terminal-bench-2 swe-bench; do \
 		echo "─── $$bench ───"; \
 		$(MAKE) --no-print-directory $$bench || echo "⚠ $$bench failed, continuing..."; \
 		echo ""; \

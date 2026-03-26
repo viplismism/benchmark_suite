@@ -12,6 +12,7 @@ Universal evaluation framework for LLM models. Standardized interface for runnin
 | **SWE-bench Verified** | Real GitHub bug fixing | 500 | Docker, ~120GB disk |
 | **BigCodeBench** | Multi-language code gen | 150-1140 | — |
 | **GPQA Diamond** | Graduate-level reasoning | 198 | HuggingFace token |
+| **CodeSearchNet** | Code retrieval (NDCG@10) | 573 | QMD, Node.js |
 
 ## Quick Start
 
@@ -30,6 +31,7 @@ make litellm-start
 make humaneval
 make gpqa
 make swe-bench
+make codesearch    # Code retrieval (no LLM needed)
 
 # 4. Or run all benchmarks
 make all
@@ -170,6 +172,7 @@ make terminal-bench-2        # Run Terminal-Bench 2.0 evaluation
 make swe-bench               # Run SWE-bench Verified evaluation
 make bigcodebench            # Run BigCodeBench evaluation
 make gpqa                    # Run GPQA Diamond evaluation
+make codesearch              # Run CodeSearchNet retrieval evaluation
 
 # Suite
 make all                     # Run all benchmarks sequentially
@@ -199,6 +202,15 @@ TERMINAL_BENCH_MODEL="your-model"
 SWE_BENCH_MODEL="your-model"
 BIGCODEBENCH_MODEL="your-model"
 GPQA_MODEL="your-model"
+```
+
+### CodeSearchNet (non-LLM benchmark)
+
+Unlike other benchmarks, CodeSearchNet evaluates a **local retrieval tool** (QMD), not an LLM:
+
+```bash
+CODESEARCH_QMD_DIR="/path/to/qmd"     # QMD repo root
+CODESEARCH_LANGUAGE="all"             # or a specific language
 ```
 
 ### litellm_config.yaml
@@ -247,6 +259,11 @@ benchmark_results/
 └── gpqa/
     └── gpqa_YYYYMMDD_HHMMSS_MODEL/
         └── summary.json
+├── codesearch/
+│   └── codesearch_YYYYMMDD_HHMMSS/
+│       ├── summary.json
+│       ├── detailed_results.json
+│       └── run.log
 ```
 
 Use `make results` to view a summary table across all runs.
