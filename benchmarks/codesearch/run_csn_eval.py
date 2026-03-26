@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from metrics import graded_ndcg_at_k, mrr_at_k, aggregate_graded_metrics
+from metrics import graded_ndcg_at_k, mrr_at_k, recall_at_k, aggregate_graded_metrics
 
 
 # ============================================================================
@@ -353,6 +353,7 @@ def evaluate_query(q: dict, top_k: int = TOP_K) -> dict:
 
     relevant_ids = [fid for fid, rel in grade_map.items() if rel >= 1]
     mrr = mrr_at_k(predictions, relevant_ids, top_k)
+    recall = recall_at_k(predictions, relevant_ids, top_k)
 
     return {
         "language":    q["language"],
@@ -361,6 +362,7 @@ def evaluate_query(q: dict, top_k: int = TOP_K) -> dict:
         "grade_map":   grade_map,
         "graded_ndcg": g_ndcg,
         "mrr":         mrr,
+        "recall":      recall,
     }
 
 
@@ -421,13 +423,14 @@ def print_results(result: dict):
     print(f"  Graded NDCG@{k:<4}: {ndcg:.4f}   (RANGER = {RANGER_NDCG:.3f}, "
           f"{'+ ' if vs >= 0 else ''}{vs:+.4f})")
     print(f"  MRR@{k:<9}: {m['mrr_at_k']:.4f}")
+    print(f"  Recall@{k:<6}: {m['recall_at_k']:.4f}")
     print(f"  Queries     : {result['num_queries']}  in {result['elapsed_seconds']:.1f}s")
 
     print(f"\n  Per-language breakdown:")
-    print(f"  {'Language':<12} {'Queries':<10} {'NDCG@'+str(k):<12} {'MRR@'+str(k)}")
-    print(f"  {'-'*48}")
+    print(f"  {'Language':<12} {'Queries':<10} {'NDCG@'+str(k):<12} {'MRR@'+str(k):<10} {'Recall@'+str(k)}")
+    print(f"  {'-'*58}")
     for lang, lm in sorted(result["lang_breakdown"].items()):
-        print(f"  {lang:<12} {lm['num_queries']:<10} {lm['graded_ndcg_at_k']:<12.4f} {lm['mrr_at_k']:.4f}")
+        print(f"  {lang:<12} {lm['num_queries']:<10} {lm['graded_ndcg_at_k']:<12.4f} {lm['mrr_at_k']:<10.4f} {lm['recall_at_k']:.4f}")
 
     print(f"{'='*70}\n")
 
@@ -448,6 +451,7 @@ def write_summary(result: dict):
         lang_scores[lang] = {
             "ndcg": round(lm["graded_ndcg_at_k"], 4),
             "mrr":  round(lm["mrr_at_k"], 4),
+            "recall": round(lm["recall_at_k"], 4),
             "queries": lm["num_queries"],
         }
 
@@ -461,6 +465,7 @@ def write_summary(result: dict):
             "accuracy": accuracy,
             "graded_ndcg": round(ndcg, 4),
             "mrr": round(m["mrr_at_k"], 4),
+            "recall": round(m["recall_at_k"], 4),
             "ranger_ndcg": RANGER_NDCG,
         },
         "per_language": lang_scores,

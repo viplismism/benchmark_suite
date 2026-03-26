@@ -209,12 +209,15 @@ def aggregate_graded_metrics(results: List[dict]) -> dict:
     """
     if not results:
         return {}
-    ndcg_scores = [r["graded_ndcg"] for r in results]
-    mrr_scores  = [r["mrr"] for r in results]
+    ndcg_scores   = [r["graded_ndcg"] for r in results]
+    mrr_scores    = [r["mrr"] for r in results]
+    recall_scores = [r.get("recall", 0.0) for r in results]
     return {
         "graded_ndcg_at_k": _mean(ndcg_scores),
         "mrr_at_k":         _mean(mrr_scores),
+        "recall_at_k":      _mean(recall_scores),
         "std_ndcg":         _std(ndcg_scores),
         "std_mrr":          _std(mrr_scores),
+        "std_recall":       _std(recall_scores),
         "num_queries":      len(results),
     }
